@@ -1,16 +1,17 @@
-//import react into the bundle
-import React from 'react'
-import {createRoot} from 'react-dom/client'
+// Importar React en el bundle
+import React from "react";
+import { createRoot } from "react-dom/client";
 
-//include your index.scss file into the bundle
+// Incluir tu archivo index.scss en el bundle
 import "../styles/index.css";
 
-//import your own components
-import Layout from './layout.js'
+// Importar tus propios componentes
+import Layout from "./layout.js";
+import injectContext from "./store/appContext";
 
-//
-const root = createRoot(document.querySelector("#app"))
+// Crear el root para renderizar la aplicación
+const root = createRoot(document.querySelector("#app"));
 
-//render your react application
-root.render(<Layout/>)
-
+// Renderizar tu aplicación React envuelta en el contexto
+const InjectedLayout = injectContext(Layout); // Envuelve Layout con el contexto
+root.render(<InjectedLayout />);

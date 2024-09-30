@@ -1,45 +1,112 @@
 const getState = ({ getStore, getActions, setStore }) => {
-	return {
-		store: {
-			demo: [
-				{
-					title: "FIRST",
-					background: "white",
-					initial: "white"
-				},
-				{
-					title: "SECOND",
-					background: "white",
-					initial: "white"
-				}
-			]
-		},
-		actions: {
-			// Use getActions to call a function within a fuction
-			exampleFunction: () => {
-				getActions().changeColor(0, "green");
-			},
-			loadSomeData: () => {
-				/**
-					fetch().then().then(data => setStore({ "foo": data.bar }))
-				*/
-			},
-			changeColor: (index, color) => {
-				//get the store
-				const store = getStore();
+  return {
+    store: {
+      contactos: [],
+    },
+    actions: {
+      exampleFunction: () => {
+        getActions().changeColor(0, "green");
+      },
+      loadSomeData: () => {},
+      changeColor: (index, color) => {
+        const store = getStore();
 
-				//we have to loop the entire demo array to look for the respective index
-				//and change its color
-				const demo = store.demo.map((elm, i) => {
-					if (i === index) elm.background = color;
-					return elm;
-				});
+        const demo = store.demo.map((elm, i) => {
+          if (i === index) elm.background = color;
+          return elm;
+        });
 
-				//reset the global store
-				setStore({ demo: demo });
-			}
-		}
-	};
+        setStore({ demo: demo });
+      },
+
+      fetchContactos: async () => {
+        try {
+          const response = await fetch(
+            "https://playground.4geeks.com/contact/agendas/sebvstiansoto"
+          );
+          if (response.status === 404) {
+            await getActions().createUser();
+            await getActions().fetchContactos();
+          }
+          if (response.ok == false) {
+            throw new Error("Error en contacto");
+          }
+          const data = await response.json();
+          console.log(data);
+          setStore({ contactos: data.contacts });
+        } catch (error) {
+          console.log(error);
+        }
+      },
+
+      addContact: async (contact) => {
+        try {
+          console.log(contact);
+          const response = await fetch(
+            "https://playground.4geeks.com/contact/agendas/coni/contacts",
+            {
+              method: "POST",
+              body: JSON.stringify(contact),
+              headers: {
+                "Content-Type": "application/json",
+              },
+            }
+          );
+          if (response.ok == false) {
+            throw new "Error al crear contacto"();
+          }
+
+          const data = await response.json();
+          setStore({ contactos: [...getStore().contactos, data] });
+        } catch (error) {
+          console.log(error);
+        }
+      },
+
+      updateContact: async (updatedContact) => {
+        try {
+          const response = await fetch(
+            `https://playground.4geeks.com/contact/agendas/coni/contacts/${updatedContact.id}`,
+            {
+              method: "PUT",
+              headers: {
+                "Content-Type": "application/json",
+              },
+              body: JSON.stringify(updatedContact),
+            }
+          );
+
+          if (response.ok) {
+            const actions = getActions();
+            actions.fetchContactos();
+          }
+        } catch (error) {
+          console.log(error);
+        }
+      },
+
+      deleteContact: async (id) => {
+        try {
+          const response = await fetch(
+            `https://playground.4geeks.com/contact/agendas/coni/contacts/${id}`,
+            {
+              method: "DELETE",
+            }
+          );
+          if (response.ok == false) {
+            throw new "No se pudo eliminar contacto"();
+          }
+
+          const contactDelete = getStore().contactos.filter(
+            (contact) => contact.id !== id
+          );
+          setStore({ contactos: contactDelete });
+        } catch (error) {
+          console.log(error);
+        }
+      },
+    },
+  };
 };
 
 export default getState;
